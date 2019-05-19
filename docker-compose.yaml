@@ -1,0 +1,51 @@
+version: '3.4'
+
+x-napalm: &napalm_proxy
+  image: salt_napalm
+  build:
+    context: ./napalm_proxy
+  environment:
+    SALT_PROXY_CONFIG: '{"log_level":"error"}'
+  dns:
+    - 152.96.120.54
+
+
+services:
+  # MASTER
+  salt:
+    image: saltstack/salt
+    ports:
+      - 8000:8000
+    volumes:
+      - ./data:/srv
+    environment:
+      SALT_MASTER_CONFIG: '{"log_level":"error"}'
+    dns:
+      - 152.96.120.54
+
+  # MINION
+  minion:
+    image: saltstack/salt
+    hostname: minion1
+    user: root
+    environment:
+      SALT_MINION_CONFIG: '{}'
+
+  # PROXY
+  # CN POD X
+  sw01:
+    <<: *napalm_proxy
+    environment:
+      SALT_PROXY_ID: sw01-pod-X
+  sw02:
+    <<: *napalm_proxy
+    environment:
+      SALT_PROXY_ID: sw02-pod-X
+  sw03:
+    <<: *napalm_proxy
+    environment:
+      SALT_PROXY_ID: sw03-pod-X
+  sw04:
+    <<: *napalm_proxy
+    environment:
+      SALT_PROXY_ID: sw04-pod-X

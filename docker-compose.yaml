@@ -6,8 +6,12 @@ x-napalm: &napalm_proxy
     context: ./napalm_proxy
   environment:
     SALT_PROXY_CONFIG: '{"log_level":"error"}'
-  dns:
-    - 152.96.120.54
+
+x-minion: &minion
+  image: saltstack/salt
+  user: root
+  environment:
+    SALT_MINION_CONFIG: '{}'
 
 
 services:
@@ -18,34 +22,36 @@ services:
       - 8000:8000
     volumes:
       - ./data:/srv
+    env_file:
+      - .env
     environment:
       SALT_MASTER_CONFIG: '{"log_level":"error"}'
-    dns:
-      - 152.96.120.54
 
   # MINION
-  minion:
-    image: saltstack/salt
+  minion1:
+    <<: *minion
     hostname: minion1
-    user: root
-    environment:
-      SALT_MINION_CONFIG: '{}'
+
+  minion2:
+    <<: *minion
+    hostname: minion2
+
 
   # PROXY
   # CN POD X
   sw01:
     <<: *napalm_proxy
     environment:
-      SALT_PROXY_ID: sw01-pod-X
+      SALT_PROXY_ID: sw01${hostname_suffix}
   sw02:
     <<: *napalm_proxy
     environment:
-      SALT_PROXY_ID: sw02-pod-X
+      SALT_PROXY_ID: sw02${hostname_suffix}
   sw03:
     <<: *napalm_proxy
     environment:
-      SALT_PROXY_ID: sw03-pod-X
+      SALT_PROXY_ID: sw03${hostname_suffix}
   sw04:
     <<: *napalm_proxy
     environment:
-      SALT_PROXY_ID: sw04-pod-X
+      SALT_PROXY_ID: sw04${hostname_suffix}

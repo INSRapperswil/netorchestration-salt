@@ -1,13 +1,13 @@
-# cas-netorchestration-salt
+# netorchestration-salt
 
-Docker compose will start two linux minions and 4 napalm proxies for network devices.
-In our lab we have pod's of 4 Cisco Catalyst switches.
+Docker compose will start 2 linux minions and 4 napalm proxies for network devices.
+In our lab we have pod's of 4 Cisco Catalyst switches but you can easily adopt it to your setup.
 
 ## Settings
 
 In the file `.env` you can set the eviroment variables used in the docker-compose file and inside of the salt master container. For example if you set `hostname_suffix` to `-pod-1` and the `proxy_domain_suffix` to `.lab.ins.hsr.ch`, a proxy minion with the id `sw01` will connect to the network address with the host address `sw01-pod-1.lab.ins.hsr.ch` using the given username and password from the `.env` file.
 
-The idea of the two linux minion is to demonstrate the basic salt conceps.
+The idea of the two linux minions is to demonstrate the basic salt concepts.
 
 ## Setup
 

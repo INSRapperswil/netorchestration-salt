@@ -1,58 +1,75 @@
 # cas-netorchestration-salt
+
+Docker compose will start two linux minions and 4 napalm proxies for network devices.
+In our lab we have pod's of 4 Cisco Catalyst switches.
+
+## Settings
+
+In the file `.env` you can set the eviroment variables used in the docker-compose file and inside of the salt master container. For example if you set `hostname_suffix` to `-pod-1` and the `proxy_domain_suffix` to `.lab.ins.hsr.ch`, a proxy minion with the id `sw01` will connect to the network address with the host address `sw01-pod-1.lab.ins.hsr.ch` using the given username and password from the `.env` file.
+
+The idea of the two linux minion is to demonstrate the basic salt conceps.
+
 ## Setup
-Change Proxy ID in `docker-compose.yaml` and change proxy pillar data in `data/pillar/napalm_proxy.sls`. You also need to change the driver type if you don't use ios.
 
 start containers
-```
+
+```bash
 docker-compose up -d
 ```
 
-Accept keys (can take some seconds)
-```
+Accept keys. It can take some seconds until you see the keys and the keys are not persistent.
+
+```bash
 docker-compose exec salt sh
 / $ salt-key -L
 Accepted Keys:
 Denied Keys:
 Unaccepted Keys:
 minion1
-sw01-pod-2
-sw02-pod-2
-sw03-pod-2
-sw04-pod-2
+minion2
+sw01-pod-X
+sw02-pod-X
+sw03-pod-X
+sw04-pod-X
 Rejected Keys:
 / $ salt-key -A
 The following keys are going to be accepted:
 Unaccepted Keys:
 minion1
-sw01-pod-2
-sw02-pod-2
-sw03-pod-2
-sw04-pod-2
+minion2
+sw01-pod-X
+sw02-pod-X
+sw03-pod-X
+sw04-pod-X
 Proceed? [n/Y] y
 Key for minion minion1 accepted.
-Key for minion sw01-pod-2 accepted.
-Key for minion sw02-pod-2 accepted.
-Key for minion sw03-pod-2 accepted.
-Key for minion sw04-pod-2 accepted.
-``` 
+Key for minion minion2 accepted.
+Key for minion sw01-pod-X accepted.
+Key for minion sw02-pod-X accepted.
+Key for minion sw03-pod-X accepted.
+Key for minion sw04-pod-X accepted.
+```
 
 ## Demo
 
 Test
-```
+
+```bash
 salt minion1 test.ping
 minion1:
     True
 / $ salt "sw0[1-3]*" test.ping
-sw03-pod-2:
+sw03-pod-X:
     True
-sw02-pod-2:
+sw02-pod-X:
     True
-sw01-pod-2:
+sw01-pod-X:
     True
 ```
+
 Install fortune on test minion
-```
+
+```bash
 / $ salt minion1 pkg.install fortune
 minion1:
     ----------
@@ -67,13 +84,16 @@ minion1:
             0.8.6-r2
         old:
 ```
-```
+
+```bash
 / $ salt minion1 cmd.run fortune
 minion1:
     "I like work ... I can sit and watch it for hours."
 ```
+
 Apply state
-```
+
+```bash
 / $ salt minion1 state.apply cowsay
 minion1:
 ----------
@@ -242,7 +262,8 @@ Total run time:   9.089 s
 ```
 
 Don't install if nothing changes
-```
+
+```bash
 / $ salt minion1 state.apply cowsay
 minion1:
 ----------
@@ -281,7 +302,8 @@ Total run time:   1.379 s
 ```
 
 Use the awesome cowsay
-```
+
+```console
 / $ salt minion1 cmd.run "fortune | cowsay"
 minion1:
      ___________________________________ 
@@ -298,48 +320,16 @@ minion1:
 ```
 
 Renderes state file demo:
-```
+
+```bash
 / $ salt minion1 state.apply cowsay.jinja_test
 ```
 
 Highstate
-```
-/ $ salt '*' state.highstate
-minion1:
-----------
-          ID: required_packages
-    Function: pkg.installed
-      Result: True
-     Comment: All specified packages are already installed
-     Started: 16:55:54.795400
-    Duration: 236.061 ms
-     Changes:   
-----------
-          ID: cowsay_source
-    Function: git.latest
-        Name: https://github.com/jasonm23/cowsay.git
-      Result: True
-     Comment: Repository /root/cowsay is up-to-date
-     Started: 16:55:55.041513
-    Duration: 1130.11 ms
-     Changes:   
-----------
-          ID: run_installer
-    Function: cmd.run
-        Name: ./install.sh /usr/local
-      Result: True
-     Comment: State was not run because none of the onchanges reqs changed
-     Started: 16:55:56.178976
-    Duration: 0.014 ms
-     Changes:   
-Summary for minion1
-------------
-Succeeded: 3
-Failed:    0
-------------
-Total states run:     3
-Total run time:   1.366 s
-sw01-pod-2:
+
+```bash
+/ $ salt 'sw*' state.highstate
+sw01-pod-X:
 ----------
           ID: netntp_example
     Function: netntp.managed
@@ -370,14 +360,14 @@ sw01-pod-2:
               loaded_config:
                   
                   logging host 152.96.11.5 vrf Mgmt-vrf
-Summary for sw01-pod-2
+Summary for sw01-pod-X
 ------------
 Succeeded: 2 (changed=2)
 Failed:    0
 ------------
 Total states run:     2
 Total run time:  26.781 s
-sw02-pod-2:
+sw02-pod-X:
 ----------
           ID: netntp_example
     Function: netntp.managed
@@ -408,14 +398,14 @@ sw02-pod-2:
               loaded_config:
                   
                   logging host 152.96.11.5 vrf Mgmt-vrf
-Summary for sw02-pod-2
+Summary for sw02-pod-X
 ------------
 Succeeded: 2 (changed=2)
 Failed:    0
 ------------
 Total states run:     2
 Total run time:  27.230 s
-sw03-pod-2:
+sw03-pod-X:
 ----------
           ID: netntp_example
     Function: netntp.managed
@@ -446,14 +436,14 @@ sw03-pod-2:
               loaded_config:
                   
                   logging host 152.96.11.5 vrf Mgmt-vrf
-Summary for sw03-pod-2
+Summary for sw03-pod-X
 ------------
 Succeeded: 2 (changed=2)
 Failed:    0
 ------------
 Total states run:     2
 Total run time:  27.349 s
-sw04-pod-2:
+sw04-pod-X:
 ----------
           ID: netntp_example
     Function: netntp.managed
@@ -484,7 +474,7 @@ sw04-pod-2:
               loaded_config:
                   
                   logging host 152.96.11.5 vrf Mgmt-vrf
-Summary for sw04-pod-2
+Summary for sw04-pod-X
 ------------
 Succeeded: 2 (changed=2)
 Failed:    0
